@@ -1,1 +1,0 @@
-Wed May 11 09:26:58 2016 [3136][-none-][FATAL] Could not connect to DB server localhost as root. port : Access denied for user 'root'@'localhost' (using password: NO)
