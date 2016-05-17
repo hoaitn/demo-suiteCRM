@@ -1,5 +1,8 @@
 <?php
-if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
+if (!defined('sugarEntry') || !sugarEntry) {
+    die('Not A Valid Entry Point');
+}
+
 /*********************************************************************************
  * SugarCRM Community Edition is a customer relationship management program developed by
  * SugarCRM, Inc. Copyright (C) 2004-2013 SugarCRM Inc.
@@ -38,7 +41,6 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * display the words  "Powered by SugarCRM" and "Supercharged by SuiteCRM".
  ********************************************************************************/
 
-
 /**
  * Set up an array of Jobs with the appropriate metadata
  * 'jobName' => array (
@@ -59,16 +61,16 @@ if (!defined('sugarEntry') || !sugarEntry) die('Not A Valid Entry Point');
  * dropdown menu.
  */
 $job_strings = array(
-    0 => 'refreshJobs',
-    1 => 'pollMonitoredInboxes',
-    2 => 'runMassEmailCampaign',
-    3 => 'pruneDatabase',
-    4 => 'trimTracker',
-    5 => 'pollMonitoredInboxesForBouncedCampaignEmails',
-    6 => 'pollMonitoredInboxesAOP',
-    7 => 'aodIndexUnindexed',
-    8 => 'aodOptimiseIndex',
-    9 => 'aorRunScheduledReports',
+    0  => 'refreshJobs',
+    1  => 'pollMonitoredInboxes',
+    2  => 'runMassEmailCampaign',
+    3  => 'pruneDatabase',
+    4  => 'trimTracker',
+    5  => 'pollMonitoredInboxesForBouncedCampaignEmails',
+    6  => 'pollMonitoredInboxesAOP',
+    7  => 'aodIndexUnindexed',
+    8  => 'aodOptimiseIndex',
+    9  => 'aorRunScheduledReports',
     10 => 'processAOW_Workflow',
     12 => 'sendEmailReminders',
     14 => 'cleanJobQueue',
@@ -86,7 +88,6 @@ function refreshJobs()
     return true;
 }
 
-
 /**
  * Job 1
  */
@@ -98,23 +99,22 @@ function pollMonitoredInboxes()
     global $dictionary;
     global $app_strings;
 
+    require_once 'modules/Emails/EmailUI.php';
 
-    require_once('modules/Emails/EmailUI.php');
-
-    $ie = new InboundEmail();
+    $ie      = new InboundEmail();
     $emailUI = new EmailUI();
-    $r = $ie->db->query('SELECT id, name FROM inbound_email WHERE is_personal = 0 AND deleted=0 AND status=\'Active\' AND mailbox_type != \'bounce\'');
+    $r       = $ie->db->query('SELECT id, name FROM inbound_email WHERE is_personal = 0 AND deleted=0 AND status=\'Active\' AND mailbox_type != \'bounce\'');
     $GLOBALS['log']->debug('Just got Result from get all Inbounds of Inbound Emails');
 
     while ($a = $ie->db->fetchByAssoc($r)) {
         $GLOBALS['log']->debug('In while loop of Inbound Emails');
         $ieX = new InboundEmail();
-        $ieX->retrieve($a['id']);;
+        $ieX->retrieve($a['id']);
         $mailboxes = $ieX->mailboxarray;
         foreach ($mailboxes as $mbox) {
-            $ieX->mailbox = $mbox;
-            $newMsgs = array();
-            $msgNoToUIDL = array();
+            $ieX->mailbox        = $mbox;
+            $newMsgs             = array();
+            $msgNoToUIDL         = array();
             $connectToMailServer = false;
             if ($ieX->isPop3Protocol()) {
                 $msgNoToUIDL = $ieX->getPop3NewMessagesToDownloadForCron();
@@ -133,19 +133,19 @@ function pollMonitoredInboxes()
                 }
                 if (is_array($newMsgs)) {
                     $current = 1;
-                    $total = count($newMsgs);
-                    require_once("include/SugarFolders/SugarFolders.php");
-                    $sugarFolder = new SugarFolder();
-                    $groupFolderId = $ieX->groupfolder_id;
+                    $total   = count($newMsgs);
+                    require_once "include/SugarFolders/SugarFolders.php";
+                    $sugarFolder         = new SugarFolder();
+                    $groupFolderId       = $ieX->groupfolder_id;
                     $isGroupFolderExists = false;
-                    $users = array();
+                    $users               = array();
                     if ($groupFolderId != null && $groupFolderId != "") {
                         $sugarFolder->retrieve($groupFolderId);
                         $isGroupFolderExists = true;
                     } // if
                     $messagesToDelete = array();
                     if ($ieX->isMailBoxTypeCreateCase()) {
-                        $users[] = $sugarFolder->assign_to_id;
+                        $users[]            = $sugarFolder->assign_to_id;
                         $distributionMethod = $ieX->get_stored_options("distrib_method", "");
                         if ($distributionMethod != 'roundRobin') {
                             $counts = $emailUI->getAssignedEmailsCountForUsers($users);
@@ -174,16 +174,16 @@ function pollMonitoredInboxes()
                                     $userId = "";
                                     if ($distributionMethod == 'roundRobin') {
                                         if (sizeof($users) == 1) {
-                                            $userId = $users[0];
+                                            $userId    = $users[0];
                                             $lastRobin = $users[0];
                                         } else {
-                                            $userIdsKeys = array_flip($users); // now keys are values
+                                            $userIdsKeys  = array_flip($users); // now keys are values
                                             $thisRobinKey = $userIdsKeys[$lastRobin] + 1;
                                             if (!empty($users[$thisRobinKey])) {
-                                                $userId = $users[$thisRobinKey];
+                                                $userId    = $users[$thisRobinKey];
                                                 $lastRobin = $users[$thisRobinKey];
                                             } else {
-                                                $userId = $users[0];
+                                                $userId    = $users[0];
                                                 $lastRobin = $users[0];
                                             }
                                         } // else
@@ -194,9 +194,9 @@ function pollMonitoredInboxes()
                                             } // foreach
                                         } else {
                                             asort($counts); // lowest to highest
-                                            $countsKeys = array_flip($counts); // keys now the 'count of items'
-                                            $leastBusy = array_shift($countsKeys); // user id of lowest item count
-                                            $userId = $leastBusy;
+                                            $countsKeys         = array_flip($counts); // keys now the 'count of items'
+                                            $leastBusy          = array_shift($countsKeys); // user id of lowest item count
+                                            $userId             = $leastBusy;
                                             $counts[$leastBusy] = $counts[$leastBusy] + 1;
                                         }
                                     } // else
@@ -209,12 +209,12 @@ function pollMonitoredInboxes()
                                 $ieX->importOneEmail($msgNo, $uid);
                             } else {
                                 /*If the group folder doesn't exist then download only those messages
-                                 which has caseid in message*/
+                                which has caseid in message*/
                                 $ieX->getMessagesInEmailCache($msgNo, $uid);
-                                $email = new Email();
-                                $header = imap_headerinfo($ieX->conn, $msgNo);
-                                $email->name = $ieX->handleMimeHeaderDecode($header->subject);
-                                $email->from_addr = $ieX->convertImapToSugarEmailAddress($header->from);
+                                $email                 = new Email();
+                                $header                = imap_headerinfo($ieX->conn, $msgNo);
+                                $email->name           = $ieX->handleMimeHeaderDecode($header->subject);
+                                $email->from_addr      = $ieX->convertImapToSugarEmailAddress($header->from);
                                 $email->reply_to_email = $ieX->convertImapToSugarEmailAddress($header->reply_to);
                                 if (!empty($email->reply_to_email)) {
                                     $contactAddr = $email->reply_to_email;
@@ -267,18 +267,18 @@ function runMassEmailCampaign()
     $GLOBALS['log']->debug('Called:runMassEmailCampaign');
 
     if (!class_exists('DBManagerFactory')) {
-        require('include/database/DBManagerFactory.php');
+        require 'include/database/DBManagerFactory.php';
     }
 
     global $beanList;
     global $beanFiles;
-    require("config.php");
-    require('include/modules.php');
+    require "config.php";
+    require 'include/modules.php';
     if (!class_exists('AclController')) {
-        require('modules/ACL/ACLController.php');
+        require 'modules/ACL/ACLController.php';
     }
 
-    require('modules/EmailMan/EmailManDelivery.php');
+    require 'modules/EmailMan/EmailManDelivery.php';
     return true;
 }
 
@@ -288,11 +288,11 @@ function runMassEmailCampaign()
 function pruneDatabase()
 {
     $GLOBALS['log']->info('----->Scheduler fired job of type pruneDatabase()');
-    $backupDir = sugar_cached('backups');
+    $backupDir  = sugar_cached('backups');
     $backupFile = 'backup-pruneDatabase-GMT0_' . gmdate('Y_m_d-H_i_s', strtotime('now')) . '.php';
 
-    $db = DBManagerFactory::getInstance();
-    $tables = $db->getTablesArray();
+    $db          = DBManagerFactory::getInstance();
+    $tables      = $db->getTablesArray();
     $queryString = array();
 
     if (!empty($tables)) {
@@ -300,7 +300,9 @@ function pruneDatabase()
             // find tables with deleted=1
             $columns = $db->get_columns($table);
             // no deleted - won't delete
-            if (empty($columns['deleted'])) continue;
+            if (empty($columns['deleted'])) {
+                continue;
+            }
 
             $custom_columns = array();
             if (array_search($table . '_cstm', $tables)) {
@@ -347,14 +349,13 @@ function pruneDatabase()
     return false;
 }
 
-
 ///**
 // * Job 4
 // */
 
 //function securityAudit() {
-//	// do something
-//	return true;
+//    // do something
+//    return true;
 //}
 
 function trimTracker()
@@ -365,10 +366,10 @@ function trimTracker()
 
     $admin = new Administration();
     $admin->retrieveSettings('tracker');
-    require('modules/Trackers/config.php');
+    require 'modules/Trackers/config.php';
     $trackerConfig = $tracker_config;
 
-    require_once('include/utils/db_utils.php');
+    require_once 'include/utils/db_utils.php';
     $prune_interval = !empty($admin->settings['tracker_prune_interval']) ? $admin->settings['tracker_prune_interval'] : 30;
     foreach ($trackerConfig as $tableName => $tableConfig) {
 
@@ -398,9 +399,8 @@ function pollMonitoredInboxesForBouncedCampaignEmails()
     $GLOBALS['log']->info('----->Scheduler job of type pollMonitoredInboxesForBouncedCampaignEmails()');
     global $dictionary;
 
-
     $ie = new InboundEmail();
-    $r = $ie->db->query('SELECT id FROM inbound_email WHERE deleted=0 AND status=\'Active\' AND mailbox_type=\'bounce\'');
+    $r  = $ie->db->query('SELECT id FROM inbound_email WHERE deleted=0 AND status=\'Active\' AND mailbox_type=\'bounce\'');
 
     while ($a = $ie->db->fetchByAssoc($r)) {
         $ieX = new InboundEmail();
@@ -412,14 +412,13 @@ function pollMonitoredInboxesForBouncedCampaignEmails()
     return true;
 }
 
-
 /**
  * Job 12
  */
 function sendEmailReminders()
 {
     $GLOBALS['log']->info('----->Scheduler fired job of type sendEmailReminders()');
-    require_once("modules/Activities/EmailReminder.php");
+    require_once "modules/Activities/EmailReminder.php";
     $reminder = new EmailReminder();
     return $reminder->process();
 }
@@ -438,13 +437,13 @@ function removeDocumentsFromFS()
     $tableName = 'cron_remove_documents';
 
     $resource = $db->limitQuery("SELECT * FROM cron_remove_documents WHERE 1=1 ORDER BY date_modified ASC", 0, 100);
-    $return = true;
+    $return   = true;
     while ($row = $db->fetchByAssoc($resource)) {
         $bean = BeanFactory::getBean($row['module']);
         $bean->retrieve($row['bean_id'], true, false);
         if (empty($bean->id)) {
             $isSuccess = true;
-            $bean->id = $row['bean_id'];
+            $bean->id  = $row['bean_id'];
             $directory = $bean->deleteFileDirectory();
             if (!empty($directory) && is_dir('upload://deleted/' . $directory)) {
                 if ($isSuccess = rmdir_recursive('upload://deleted/' . $directory)) {
@@ -453,7 +452,7 @@ function removeDocumentsFromFS()
                         $path = 'upload://deleted/' . implode('/', $directory);
                         if (is_dir($path)) {
                             $directoryIterator = new DirectoryIterator($path);
-                            $empty = true;
+                            $empty             = true;
                             foreach ($directoryIterator as $item) {
                                 if ($item->getFilename() == '.' || $item->getFilename() == '..') {
                                     continue;
@@ -482,7 +481,6 @@ function removeDocumentsFromFS()
     return $return;
 }
 
-
 /**
  * + * Job 16
  * + * this will trim all records in sugarfeeds table that are older than 30 days or specified interval
@@ -497,18 +495,15 @@ function trimSugarFeeds()
     //get the pruning interval from globals if it's specified
     $prune_interval = !empty($GLOBALS['sugar_config']['sugarfeed_prune_interval']) && is_numeric($GLOBALS['sugar_config']['sugarfeed_prune_interval']) ? $GLOBALS['sugar_config']['sugarfeed_prune_interval'] : 30;
 
-
     //create and run the query to delete the records
     $timeStamp = $db->convert("'" . $timedate->asDb($timedate->getNow()->get("-" . $prune_interval . " days")) . "'", "datetime");
-    $query = "DELETE FROM sugarfeed WHERE date_modified < $timeStamp";
-
+    $query     = "DELETE FROM sugarfeed WHERE date_modified < $timeStamp";
 
     $GLOBALS['log']->info("----->Scheduler is about to trim the sugarfeed table by running the query $query");
     $db->query($query);
 
     return true;
 }
-
 
 function cleanJobQueue($job)
 {
@@ -538,12 +533,12 @@ function pollMonitoredInboxesAOP()
     global $app_strings;
     global $sugar_config;
 
-    require_once('modules/Configurator/Configurator.php');
-    require_once('modules/Emails/EmailUI.php');
+    require_once 'modules/Configurator/Configurator.php';
+    require_once 'modules/Emails/EmailUI.php';
 
-    $ie = new AOPInboundEmail();
+    $ie      = new AOPInboundEmail();
     $emailUI = new EmailUI();
-    $r = $ie->db->query('SELECT id, name FROM inbound_email WHERE is_personal = 0 AND deleted=0 AND status=\'Active\' AND mailbox_type != \'bounce\'');
+    $r       = $ie->db->query('SELECT id, name FROM inbound_email WHERE is_personal = 0 AND deleted=0 AND status=\'Active\' AND mailbox_type != \'bounce\'');
     $GLOBALS['log']->debug('Just got Result from get all Inbounds of Inbound Emails');
 
     while ($a = $ie->db->fetchByAssoc($r)) {
@@ -552,9 +547,9 @@ function pollMonitoredInboxesAOP()
         $ieX->retrieve($a['id']);
         $mailboxes = $ieX->mailboxarray;
         foreach ($mailboxes as $mbox) {
-            $ieX->mailbox = $mbox;
-            $newMsgs = array();
-            $msgNoToUIDL = array();
+            $ieX->mailbox        = $mbox;
+            $newMsgs             = array();
+            $msgNoToUIDL         = array();
             $connectToMailServer = false;
             if ($ieX->isPop3Protocol()) {
                 $msgNoToUIDL = $ieX->getPop3NewMessagesToDownloadForCron();
@@ -573,12 +568,12 @@ function pollMonitoredInboxesAOP()
                 }
                 if (is_array($newMsgs)) {
                     $current = 1;
-                    $total = count($newMsgs);
-                    require_once("include/SugarFolders/SugarFolders.php");
-                    $sugarFolder = new SugarFolder();
-                    $groupFolderId = $ieX->groupfolder_id;
+                    $total   = count($newMsgs);
+                    require_once "include/SugarFolders/SugarFolders.php";
+                    $sugarFolder         = new SugarFolder();
+                    $groupFolderId       = $ieX->groupfolder_id;
                     $isGroupFolderExists = false;
-                    $users = array();
+                    $users               = array();
                     if ($groupFolderId != null && $groupFolderId != "") {
                         $sugarFolder->retrieve($groupFolderId);
                         $isGroupFolderExists = true;
@@ -615,13 +610,13 @@ function pollMonitoredInboxesAOP()
                                 $ieX->importOneEmail($msgNo, $uid);
                             } else {
                                 /*If the group folder doesn't exist then download only those messages
-                                 which has caseid in message*/
+                                which has caseid in message*/
 
                                 $ieX->getMessagesInEmailCache($msgNo, $uid);
-                                $email = new Email();
-                                $header = imap_headerinfo($ieX->conn, $msgNo);
-                                $email->name = $ieX->handleMimeHeaderDecode($header->subject);
-                                $email->from_addr = $ieX->convertImapToSugarEmailAddress($header->from);
+                                $email                 = new Email();
+                                $header                = imap_headerinfo($ieX->conn, $msgNo);
+                                $email->name           = $ieX->handleMimeHeaderDecode($header->subject);
+                                $email->from_addr      = $ieX->convertImapToSugarEmailAddress($header->from);
                                 $email->reply_to_email = $ieX->convertImapToSugarEmailAddress($header->reply_to);
                                 if (!empty($email->reply_to_email)) {
                                     $contactAddr = $email->reply_to_email;
@@ -665,12 +660,12 @@ function pollMonitoredInboxesAOP()
  */
 function aodIndexUnindexed()
 {
-    $total = 1;
+    $total       = 1;
     $sanityCount = 0;
     while ($total > 0) {
         $total = performLuceneIndexing();
         $sanityCount++;
-        if($sanityCount > 100){
+        if ($sanityCount > 100) {
             return true;
         }
     }
@@ -684,7 +679,6 @@ function aodOptimiseIndex()
     return true;
 }
 
-
 function performLuceneIndexing()
 {
     global $db, $sugar_config;
@@ -694,18 +688,18 @@ function performLuceneIndexing()
     $index = BeanFactory::getBean("AOD_Index")->getIndex();
 
     $beanList = $index->getIndexableModules();
-    $total = 0;
+    $total    = 0;
     foreach ($beanList as $beanModule => $beanName) {
         $bean = BeanFactory::getBean($beanModule);
         if (!$bean || !method_exists($bean, "getTableName") || !$bean->getTableName()) {
             continue;
         }
-        $query = "SELECT b.id FROM ".$bean->getTableName()." b LEFT JOIN aod_indexevent ie ON (ie.record_id = b.id AND ie.record_module = '".$beanModule."') WHERE b.deleted = 0 AND (ie.id IS NULL OR ie.date_modified < b.date_modified) ORDER BY b.date_modified ASC";
-        $res = $db->limitQuery($query, 0, 500);
-        $c = 0;
+        $query = "SELECT b.id FROM " . $bean->getTableName() . " b LEFT JOIN aod_indexevent ie ON (ie.record_id = b.id AND ie.record_module = '" . $beanModule . "') WHERE b.deleted = 0 AND (ie.id IS NULL OR ie.date_modified < b.date_modified) ORDER BY b.date_modified ASC";
+        $res   = $db->limitQuery($query, 0, 500);
+        $c     = 0;
         while ($row = $db->fetchByAssoc($res)) {
             $suc = $index->index($beanModule, $row['id']);
-            if($suc){
+            if ($suc) {
                 $c++;
                 $total++;
             }
@@ -723,19 +717,19 @@ function performLuceneIndexing()
 function aorRunScheduledReports()
 {
     require_once 'include/SugarQueue/SugarJobQueue.php';
-    $date = new DateTime();//Ensure we check all schedules at the same instant
+    $date = new DateTime(); //Ensure we check all schedules at the same instant
     foreach (BeanFactory::getBean('AOR_Scheduled_Reports')->get_full_list() as $scheduledReport) {
 
         if ($scheduledReport->status == 'active' && $scheduledReport->shouldRun($date)) {
             if (empty($scheduledReport->aor_report_id)) {
                 continue;
             }
-            $job = new SchedulersJob();
-            $job->name = "Scheduled report - {$scheduledReport->name} on {$date->format('c')}";
-            $job->data = $scheduledReport->id;
-            $job->target = "class::AORScheduledReportJob";
+            $job                   = new SchedulersJob();
+            $job->name             = "Scheduled report - {$scheduledReport->name} on {$date->format('c')}";
+            $job->data             = $scheduledReport->id;
+            $job->target           = "class::AORScheduledReportJob";
             $job->assigned_user_id = 1;
-            $jq = new SugarJobQueue();
+            $jq                    = new SugarJobQueue();
             $jq->submitJob($job);
         }
     }
@@ -743,7 +737,7 @@ function aorRunScheduledReports()
 
 function processAOW_Workflow()
 {
-    require_once('modules/AOW_WorkFlow/AOW_WorkFlow.php');
+    require_once 'modules/AOW_WorkFlow/AOW_WorkFlow.php';
     $workflow = new AOW_WorkFlow();
     return $workflow->run_flows();
 }
@@ -759,7 +753,7 @@ class AORScheduledReportJob implements RunnableSchedulerJob
     {
         global $timedate;
 
-        $bean = BeanFactory::getBean('AOR_Scheduled_Reports', $data);
+        $bean   = BeanFactory::getBean('AOR_Scheduled_Reports', $data);
         $report = $bean->get_linked_beans('aor_report', 'AOR_Reports');
         if ($report) {
             $report = $report[0];
@@ -793,17 +787,17 @@ class AORScheduledReportJob implements RunnableSchedulerJob
 EOF;
         $emailObj = new Email();
         $defaults = $emailObj->getSystemDefaultEmail();
-        $mail = new SugarPHPMailer();
+        $mail     = new SugarPHPMailer();
 
         $mail->setMailerForSystem();
         $mail->IsHTML(true);
-        $mail->From = $defaults['email'];
+        $mail->From     = $defaults['email'];
         $mail->FromName = $defaults['name'];
-        $mail->Subject = from_html($bean->name);
-        $mail->Body = $html;
+        $mail->Subject  = from_html($bean->name);
+        $mail->Body     = $html;
         $mail->prepForOutbound();
         $success = true;
-        $emails = $bean->get_email_recipients();
+        $emails  = $bean->get_email_recipients();
         foreach ($emails as $email_address) {
             $mail->ClearAddresses();
             $mail->AddAddress($email_address);
@@ -816,10 +810,9 @@ EOF;
 }
 
 if (file_exists('custom/modules/Schedulers/_AddJobsHere.php')) {
-    require('custom/modules/Schedulers/_AddJobsHere.php');
+    require 'custom/modules/Schedulers/_AddJobsHere.php';
 }
 
 if (file_exists('custom/modules/Schedulers/Ext/ScheduledTasks/scheduledtasks.ext.php')) {
-    require('custom/modules/Schedulers/Ext/ScheduledTasks/scheduledtasks.ext.php');
+    require 'custom/modules/Schedulers/Ext/ScheduledTasks/scheduledtasks.ext.php';
 }
-?>

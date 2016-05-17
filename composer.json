@@ -1,0 +1,13 @@
+{
+    "name": "qsoft/demo-suite-crm",
+    "authors": [
+        {
+            "name": "Duong The",
+            "email": "nopbongdem@gmail.com"
+        }
+    ],
+    "require": {
+        "kamranahmedse/php-geocode": "^2.0",
+        "willdurand/geocoder": "^3.3"
+    }
+}
